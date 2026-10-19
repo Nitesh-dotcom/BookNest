@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard – BookNest</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    body { background:var(--bg-primary); }
+    .admin-layout { display:grid; grid-template-columns:220px 1fr; min-height:calc(100vh - 130px); }
+    /* Sidebar */
+    .admin-sidebar { background:#1A1A2E; color:#fff; padding:1.5rem 0; position:sticky; top:0; height:100vh; overflow-y:auto; }
+    .admin-sidebar-title { padding:0 1.5rem 1.25rem; font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:700; color:#fff; border-bottom:1px solid rgba(255,255,255,.1); margin-bottom:.75rem; display:flex; align-items:center; gap:.5rem; }
+    .admin-sidebar-title svg { stroke:var(--accent-primary); }
+    .admin-nav-btn { display:flex; align-items:center; gap:.75rem; width:100%; padding:.75rem 1.5rem; border:none; background:none; color:rgba(255,255,255,.7); font-family:inherit; font-size:.875rem; font-weight:500; cursor:pointer; text-align:left; transition:all .15s; }
+    .admin-nav-btn:hover { color:#fff; background:rgba(255,255,255,.07); }
+    .admin-nav-btn.active { color:#fff; background:rgba(184,93,54,.2); border-left:3px solid var(--accent-primary); }
+    .admin-nav-divider { border:none; border-top:1px solid rgba(255,255,255,.1); margin:.5rem 0; }
+    .admin-nav-btn svg { flex-shrink:0; opacity:.7; }
+    .admin-nav-btn.active svg { opacity:1; }
+    /* Main content */
+    .admin-content { padding:2rem; overflow:auto; }
+    .admin-section { display:none; }
+    .admin-section.active { display:block; }
+    .admin-section-title { font-family:'Playfair Display',serif; font-size:1.5rem; font-weight:700; color:var(--text-primary); margin-bottom:1.5rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
+    /* Stat cards */
+    .stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1.2rem; margin-bottom:1.75rem; }
+    .stat-card { background:#fff; border:1px solid var(--border-color); border-radius:14px; padding:1.25rem; }
+    .stat-card-label { font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); margin-bottom:.4rem; }
+    .stat-card-value { font-family:'Playfair Display',serif; font-size:2rem; font-weight:700; color:var(--text-primary); }
+    .stat-card-icon { float:right; margin-top:-2.5rem; padding:.6rem; border-radius:10px; }
+    .icon-blue { background:#EFF6FF; color:#3B82F6; }
+    .icon-green { background:#F0FDF4; color:#16A34A; }
+    .icon-orange { background:#FFF7ED; color:#EA580C; }
+    .icon-purple { background:#FAF5FF; color:#7C3AED; }
+    /* Alert cards */
+    .alert-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem; }
+    .alert-card { background:#FEF3C7; border:1px solid #F59E0B; border-radius:12px; padding:1rem 1.25rem; cursor:pointer; transition:all .15s; }
+    .alert-card:hover { background:#FEF9C3; }
+    .alert-card-label { font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#92400E; }
+    .alert-card-value { font-size:1.5rem; font-weight:700; color:#92400E; margin:.3rem 0; }
+    .alert-card-link { font-size:.8rem; color:#B45309; font-weight:600; }
+    /* Data tables */
+    .data-table-wrap { background:#fff; border:1px solid var(--border-color); border-radius:14px; overflow:hidden; }
+    .data-table-header { padding:1rem 1.5rem; border-bottom:1px solid var(--border-color); display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
+    .data-table-header h3 { font-weight:700; font-size:1rem; color:var(--text-primary); }
+    .table-search { padding:.5rem .9rem; border:1.5px solid var(--border-color); border-radius:8px; font-size:.85rem; font-family:inherit; background:var(--bg-primary); width:220px; }
+    .table-search:focus { outline:none; border-color:var(--accent-primary); }
+    table { width:100%; border-collapse:collapse; font-size:.875rem; }
+    th { padding:.8rem 1rem; text-align:left; font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); background:var(--bg-primary); border-bottom:1px solid var(--border-color); white-space:nowrap; }
+    td { padding:.85rem 1rem; border-bottom:1px solid var(--border-color); color:var(--text-primary); vertical-align:middle; }
+    tr:last-child td { border-bottom:none; }
+    tr:hover td { background:var(--bg-primary); }
+    .tb-thumb { width:40px; height:55px; object-fit:cover; border-radius:5px; }
+    .active-badge { display:inline-flex; padding:.2rem .6rem; border-radius:20px; font-size:.72rem; font-weight:700; }
+    .badge-active { background:#D1FAE5; color:#065F46; }
+    .badge-inactive { background:#F3F4F6; color:#6B7280; }
+    /* Action buttons in table */
+    .act-btn { padding:.3rem .65rem; border-radius:6px; font-size:.78rem; font-weight:600; cursor:pointer; font-family:inherit; border:none; transition:all .15s; }
+    .act-btn-edit { background:#EFF6FF; color:#2563EB; }
+    .act-btn-edit:hover { background:#DBEAFE; }
+    .act-btn-danger { background:#FEF2F2; color:#DC2626; }
+    .act-btn-danger:hover { background:#FEE2E2; }
+    .act-btn-success { background:#F0FDF4; color:#16A34A; }
+    .act-btn-success:hover { background:#DCFCE7; }
+    /* Status select */
+    .status-select { padding:.3rem .5rem; border:1.5px solid var(--border-color); border-radius:6px; font-size:.78rem; font-family:inherit; background:#fff; cursor:pointer; }
+    .status-select:focus { outline:none; border-color:var(--accent-primary); }
+    /* Stock input */
+    .stock-input { width:60px; padding:.3rem .4rem; border:1.5px solid var(--border-color); border-radius:6px; font-size:.82rem; font-family:inherit; text-align:center; }
+    .stock-input:focus { outline:none; border-color:var(--accent-primary); }
+    /* Pagination */
+    .table-pagination { display:flex; align-items:center; justify-content:space-between; padding:.75rem 1.5rem; border-top:1px solid var(--border-color); font-size:.82rem; color:var(--text-muted); }
+    .pag-btns { display:flex; gap:.4rem; }
+    .pag-btns button { padding:.35rem .75rem; border:1.5px solid var(--border-color); border-radius:6px; background:#fff; color:var(--text-primary); font-family:inherit; font-size:.82rem; cursor:pointer; }
+    .pag-btns button:hover:not(:disabled) { border-color:var(--accent-primary); color:var(--accent-primary); }
+    .pag-btns button.active { background:var(--accent-primary); border-color:var(--accent-primary); color:#fff; }
+    .pag-btns button:disabled { opacity:.4; cursor:not-allowed; }
+    /* Modal */
+    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:9999; display:none; align-items:center; justify-content:center; padding:1rem; }
+    .modal-overlay.open { display:flex; }
+    .modal { background:#fff; border-radius:18px; width:100%; max-width:620px; max-height:90vh; overflow-y:auto; box-shadow:0 24px 80px rgba(0,0,0,.25); }
+    .modal-header { padding:1.5rem; border-bottom:1px solid var(--border-color); display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; background:#fff; z-index:1; }
+    .modal-header h3 { font-family:'Playfair Display',serif; font-size:1.2rem; font-weight:700; color:var(--text-primary); }
+    .modal-close { background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:1.5rem; line-height:1; padding:.2rem; }
+    .modal-body { padding:1.5rem; }
+    .modal-footer { padding:1rem 1.5rem; border-top:1px solid var(--border-color); display:flex; justify-content:flex-end; gap:.75rem; }
+    .modal-footer .btn-cancel { padding:.65rem 1.4rem; border:1.5px solid var(--border-color); border-radius:10px; background:#fff; color:var(--text-secondary); font-weight:600; font-family:inherit; cursor:pointer; font-size:.9rem; }
+    .modal-footer .btn-save { padding:.65rem 1.8rem; border:none; border-radius:10px; background:var(--accent-primary); color:#fff; font-weight:700; font-family:inherit; cursor:pointer; font-size:.9rem; }
+    .modal-footer .btn-save:hover { background:var(--accent-dark); }
+    .modal-footer .btn-save:disabled { opacity:.5; cursor:not-allowed; }
+    /* Modal form */
+    .modal-form-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    .modal-form-group { margin-bottom:1rem; }
+    .modal-form-group.full { grid-column:1/-1; }
+    .modal-label { display:block; font-weight:600; font-size:.82rem; color:var(--text-primary); margin-bottom:.3rem; }
+    .modal-input { width:100%; padding:.6rem .9rem; border:1.5px solid var(--border-color); border-radius:8px; font-size:.875rem; font-family:inherit; background:var(--bg-primary); color:var(--text-primary); box-sizing:border-box; }
+    .modal-input:focus { outline:none; border-color:var(--accent-primary); }
+    select.modal-input { cursor:pointer; }
+    textarea.modal-input { resize:vertical; min-height:80px; }
+    .modal-check-row { display:flex; align-items:center; gap:.5rem; font-size:.875rem; color:var(--text-primary); cursor:pointer; }
+    .modal-check-row input { accent-color:var(--accent-primary); width:15px; height:15px; }
+    /* Recent orders table in dashboard */
+    .recent-table th, .recent-table td { padding:.7rem 1rem; }
+    /* Status badges */
+    .status-PENDING { background:#FEF3C7; color:#92400E; }
+    .status-CONFIRMED { background:#DBEAFE; color:#1E40AF; }
+    .status-PROCESSING { background:#FED7AA; color:#C2410C; }
+    .status-SHIPPED { background:#EDE9FE; color:#5B21B6; }
+    .status-DELIVERED { background:#D1FAE5; color:#065F46; }
+    .status-CANCELLED { background:#F3F4F6; color:#6B7280; }
+    .status-pill { display:inline-flex; padding:.2rem .65rem; border-radius:20px; font-size:.72rem; font-weight:700; text-transform:uppercase; }
+    /* Spinner */
+    @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+    .spinner { display:inline-block; width:16px; height:16px; border:2px solid rgba(255,255,255,.4); border-top-color:#fff; border-radius:50%; animation:spin .6s linear infinite; vertical-align:middle; margin-right:.4rem; }
+    /* Add btn */
+    .btn-add { padding:.55rem 1.2rem; border:none; border-radius:8px; background:var(--accent-primary); color:#fff; font-weight:700; font-family:inherit; font-size:.875rem; cursor:pointer; display:flex; align-items:center; gap:.4rem; }
+    .btn-add:hover { background:var(--accent-dark); }
+    @media (max-width:1100px) { .stat-grid { grid-template-columns:repeat(2,1fr); } }
+    @media (max-width:800px) { .admin-layout { grid-template-columns:1fr; } .admin-sidebar { height:auto; position:static; display:flex; flex-wrap:wrap; padding:.5rem; } .admin-sidebar-title { display:none; } .admin-nav-btn { padding:.5rem .75rem; font-size:.78rem; } .stat-grid { grid-template-columns:1fr 1fr; } .alert-grid { grid-template-columns:1fr; } .modal-form-grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <div id="site-header"></div>
+
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <div class="admin-sidebar-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+        Admin Panel
+      </div>
+      <button class="admin-nav-btn active" onclick="showTab('dashboard')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg>
+        Dashboard
+      </button>
+      <button class="admin-nav-btn" onclick="showTab('books')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+        Books
+      </button>
+      <button class="admin-nav-btn" onclick="showTab('orders')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="M6 8h12M6 12h8"></path></svg>
+        Orders
+      </button>
+      <button class="admin-nav-btn" onclick="showTab('categories')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+        Categories
+      </button>
+      <button class="admin-nav-btn" onclick="showTab('customers')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        Customers
+      </button>
+      <hr class="admin-nav-divider" />
+      <button class="admin-nav-btn" onclick="window.location.href='index.html'">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        Back to Store
+      </button>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-content">
+
+      <!-- ===== DASHBOARD ===== -->
+      <div class="admin-section active" id="tab-dashboard">
+        <div class="admin-section-title">Dashboard Overview</div>
+
+        <div class="stat-grid" id="stat-grid">
+          <div class="stat-card"><div class="stat-card-label">Total Books</div><div class="stat-card-value" id="stat-books">—</div></div>
+          <div class="stat-card"><div class="stat-card-label">Total Orders</div><div class="stat-card-value" id="stat-orders">—</div></div>
+          <div class="stat-card"><div class="stat-card-label">Total Users</div><div class="stat-card-value" id="stat-users">—</div></div>
+          <div class="stat-card"><div class="stat-card-label">Total Revenue</div><div class="stat-card-value" id="stat-revenue">—</div></div>
+        </div>
+
+        <div class="alert-grid">
+          <div class="alert-card" onclick="showTab('orders')">
+            <div class="alert-card-label">⚠ Pending Orders</div>
+            <div class="alert-card-value" id="alert-pending">—</div>
+            <div class="alert-card-link">View all orders →</div>
+          </div>
+          <div class="alert-card" onclick="showTab('books')">
+            <div class="alert-card-label">📦 Low Stock Books</div>
+            <div class="alert-card-value" id="alert-lowstock">—</div>
+            <div class="alert-card-link">Manage inventory →</div>
+          </div>
+        </div>
+
+        <div class="data-table-wrap">
+          <div class="data-table-header"><h3>Recent Orders</h3></div>
+          <div style="overflow-x:auto;">
+            <table class="recent-table">
+              <thead><tr><th>Order #</th><th>Customer</th><th>Date</th><th>Total</th><th>Status</th></tr></thead>
+              <tbody id="recent-orders-tbody"><tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:2rem;">Loading…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== BOOKS ===== -->
+      <div class="admin-section" id="tab-books">
+        <div class="admin-section-title">
+          Books Management
+          <button class="btn-add" onclick="openAddBookModal()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Add Book
+          </button>
+        </div>
+        <div class="data-table-wrap">
+          <div class="data-table-header">
+            <h3>All Books</h3>
+            <input class="table-search" type="text" placeholder="Search books…" id="books-search" oninput="filterBooksTable(this.value)" />
+          </div>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead><tr><th>Cover</th><th>Title</th><th>Author</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="books-tbody"><tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:2rem;">Loading…</td></tr></tbody>
+            </table>
+          </div>
+          <div class="table-pagination" id="books-pag"></div>
+        </div>
+      </div>
+
+      <!-- ===== ORDERS ===== -->
+      <div class="admin-section" id="tab-orders">
+        <div class="admin-section-title">Orders Management</div>
+        <div class="data-table-wrap">
+          <div class="data-table-header">
+            <h3>All Orders</h3>
+          </div>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead><tr><th>Order #</th><th>Customer</th><th>Date</th><th>Items</th><th>Total</th><th>Payment</th><th>Status</th><th>Change Status</th></tr></thead>
+              <tbody id="orders-tbody"><tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:2rem;">Loading…</td></tr></tbody>
+            </table>
+          </div>
+          <div class="table-pagination" id="orders-pag"></div>
+        </div>
+      </div>
+
+      <!-- ===== CATEGORIES ===== -->
+      <div class="admin-section" id="tab-categories">
+        <div class="admin-section-title">
+          Categories
+          <button class="btn-add" onclick="openCategoryModal()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Add Category
+          </button>
+        </div>
+        <div class="data-table-wrap">
+          <div style="overflow-x:auto;">
+            <table>
+              <thead><tr><th>Name</th><th>Description</th><th>Books</th><th>Actions</th></tr></thead>
+              <tbody id="categories-tbody"><tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:2rem;">Loading…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== CUSTOMERS ===== -->
+      <div class="admin-section" id="tab-customers">
+        <div class="admin-section-title">Customers</div>
+        <div class="data-table-wrap">
+          <div style="overflow-x:auto;">
+            <table>
+              <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Member Since</th><th>Status</th></tr></thead>
+              <tbody id="customers-tbody"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem;">Loading…</td></tr></tbody>
+            </table>
+          </div>
+          <div class="table-pagination" id="customers-pag"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
+    <div class="modal" id="modal">
+      <div class="modal-header">
+        <h3 id="modal-title">Modal</h3>
+        <button class="modal-close" onclick="closeModal()">×</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-footer" id="modal-footer">
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="btn-save" id="modal-submit-btn" onclick="handleModalSubmit()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="site-footer"></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/wishlist.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    let categoriesList = [];
+    let currentModalAction = null;
+    let currentEditId = null;
+    let booksPage = 0, ordersPage = 0, customersPage = 0;
+    let booksTotalPages = 0, ordersTotalPages = 0, customersTotalPages = 0;
+    const PAGE_SIZE = 20;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Admin-only guard
+      if (!window.auth || !window.auth.isLoggedIn() || window.auth.getUser()?.role !== 'ADMIN') {
+        window.location.href = 'index.html';
+        return;
+      }
+      loadDashboard();
+      loadCategories();
+    });
+
+    // Keyboard Escape closes modal
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+    // Tab switching
+    function showTab(tab) {
+      document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab-' + tab).classList.add('active');
+      event.currentTarget?.classList.add('active');
+      // Find clicked button
+      document.querySelectorAll('.admin-nav-btn').forEach(btn => {
+        if (btn.getAttribute('onclick') === `showTab('${tab}')`) btn.classList.add('active');
+      });
+      if (tab === 'books') loadAdminBooks();
+      if (tab === 'orders') loadAdminOrders();
+      if (tab === 'categories') renderCategoriesTable();
+      if (tab === 'customers') loadCustomers();
+    }
+
+    // ===== DASHBOARD =====
+    async function loadDashboard() {
+      try {
+        const res = await api.get('/admin/dashboard');
+        const stats = (res && res.data !== undefined) ? res.data : res;
+        document.getElementById('stat-books').textContent = stats.totalBooks ?? '—';
+        document.getElementById('stat-orders').textContent = stats.totalOrders ?? '—';
+        document.getElementById('stat-users').textContent = stats.totalUsers ?? '—';
+        document.getElementById('stat-revenue').textContent = stats.totalRevenue != null ? formatPrice(stats.totalRevenue) : '—';
+        document.getElementById('alert-pending').textContent = stats.pendingOrders ?? 0;
+        document.getElementById('alert-lowstock').textContent = stats.lowStockBooks ?? 0;
+        const recentOrders = stats.recentOrders || [];
+        document.getElementById('recent-orders-tbody').innerHTML = recentOrders.length
+          ? recentOrders.map(o => `
+            <tr>
+              <td>#${o.orderNumber || o.id}</td>
+              <td>${o.shippingName || '—'}</td>
+              <td>${new Date(o.orderDate).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</td>
+              <td>${formatPrice(o.totalAmount)}</td>
+              <td><span class="status-pill status-${o.status}">${o.status}</span></td>
+            </tr>`).join('')
+          : '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:1.5rem;">No recent orders.</td></tr>';
+      } catch (e) {
+        console.error('Dashboard load error', e);
+      }
+    }
+
+    // ===== CATEGORIES =====
+    async function loadCategories() {
+      try {
+        const res = await api.get('/categories');
+        categoriesList = (res && res.data !== undefined) ? res.data : (res || []);
+      } catch (e) { categoriesList = []; }
+    }
+
+    function renderCategoriesTable() {
+      const tbody = document.getElementById('categories-tbody');
+      if (!categoriesList.length) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:1.5rem;">No categories.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = categoriesList.map(c => `
+        <tr>
+          <td><strong>${c.name}</strong></td>
+          <td style="color:var(--text-secondary);">${c.description || '—'}</td>
+          <td><span class="active-badge badge-active">${c.totalBooks || 0}</span></td>
+          <td>
+            <button class="act-btn act-btn-edit" onclick="openCategoryModal(${JSON.stringify(c).replace(/"/g,'&quot;')})">Edit</button>
+            ${(!c.totalBooks || c.totalBooks === 0) ? `<button class="act-btn act-btn-danger" onclick="deleteCategory(${c.id})" style="margin-left:.3rem;">Delete</button>` : ''}
+          </td>
+        </tr>`).join('');
+    }
+
+    function openCategoryModal(cat = null) {
+      currentEditId = cat ? cat.id : null;
+      currentModalAction = cat ? 'edit-category' : 'add-category';
+      document.getElementById('modal-title').textContent = cat ? 'Edit Category' : 'Add Category';
+      document.getElementById('modal-body').innerHTML = `
+        <div class="modal-form-group">
+          <label class="modal-label">Category Name *</label>
+          <input class="modal-input" type="text" id="cat-name" value="${cat ? cat.name : ''}" required placeholder="e.g. Science Fiction" />
+        </div>
+        <div class="modal-form-group">
+          <label class="modal-label">Description</label>
+          <textarea class="modal-input" id="cat-desc" placeholder="Brief description…">${cat ? (cat.description || '') : ''}</textarea>
+        </div>`;
+      openModal();
+    }
+
+    async function saveCategoryModal() {
+      const name = document.getElementById('cat-name').value.trim();
+      if (!name) { showToast('Category name is required.', 'error'); return; }
+      const payload = { name, description: document.getElementById('cat-desc').value.trim() };
+      const btn = document.getElementById('modal-submit-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Saving…';
+      try {
+        if (currentEditId) {
+          await api.put('/admin/categories/' + currentEditId, payload);
+        } else {
+          await api.post('/admin/categories', payload);
+        }
+        showToast('Category saved!', 'success');
+        closeModal();
+        await loadCategories();
+        renderCategoriesTable();
+      } catch (e) {
+        showToast(e.message || 'Error saving category.', 'error');
+      }
+      btn.disabled = false;
+      btn.innerHTML = 'Save';
+    }
+
+    async function deleteCategory(id) {
+      if (!confirm('Delete this category?')) return;
+      try {
+        await api.delete('/admin/categories/' + id);
+        showToast('Category deleted.', 'success');
+        await loadCategories();
+        renderCategoriesTable();
+      } catch (e) {
+        showToast(e.message || 'Cannot delete category.', 'error');
+      }
+    }
+
+    // ===== BOOKS =====
+    let allBooksRaw = [];
+    async function loadAdminBooks() {
+      document.getElementById('books-tbody').innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:2rem;">Loading…</td></tr>';
+      try {
+        const res = await api.get('/admin/books', { page: booksPage, size: PAGE_SIZE });
+        const data = (res && res.data !== undefined) ? res.data : res;
+        allBooksRaw = data.content || [];
+        booksTotalPages = data.totalPages || 1;
+        renderBooksTable(allBooksRaw);
+        renderBooksPages();
+      } catch (e) {
+        document.getElementById('books-tbody').innerHTML = `<tr><td colspan="8" style="text-align:center;color:#DC2626;padding:2rem;">${e.message}</td></tr>`;
+      }
+    }
+
+    function filterBooksTable(q) {
+      const filtered = q ? allBooksRaw.filter(b => b.title.toLowerCase().includes(q.toLowerCase()) || b.author.toLowerCase().includes(q.toLowerCase())) : allBooksRaw;
+      renderBooksTable(filtered);
+    }
+
+    function renderBooksTable(books) {
+      const tbody = document.getElementById('books-tbody');
+      if (!books.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:2rem;">No books found.</td></tr>'; return; }
+      tbody.innerHTML = books.map(b => `
+        <tr>
+          <td><img class="tb-thumb" src="${b.coverImageUrl || b.imageUrl || 'assets/placeholder.svg'}" alt="${b.title}" onerror="handleImageError(this)" /></td>
+          <td><strong style="font-size:.85rem;">${b.title}</strong></td>
+          <td style="font-size:.82rem;color:var(--text-secondary);">${b.author}</td>
+          <td style="font-size:.82rem;">${b.category?.name || '—'}</td>
+          <td style="font-size:.85rem;font-weight:700;">${formatPrice(b.price)}</td>
+          <td>
+            <input class="stock-input" type="number" value="${b.stockQuantity}" min="0" id="stock-${b.id}" />
+            <button class="act-btn act-btn-success" style="margin-top:.2rem;font-size:.72rem;" onclick="updateStock(${b.id})">Save</button>
+          </td>
+          <td>
+            <span class="active-badge ${b.active ? 'badge-active' : 'badge-inactive'}">${b.active ? 'Active' : 'Inactive'}</span>
+            ${b.featured ? '<span style="margin-left:.3rem;font-size:.7rem;background:#FEF3C7;color:#92400E;padding:.15rem .5rem;border-radius:10px;font-weight:700;">★ Featured</span>' : ''}
+          </td>
+          <td>
+            <button class="act-btn act-btn-edit" onclick="openEditBookModal(${b.id})">Edit</button>
+            <button class="act-btn ${b.active ? 'act-btn-danger' : 'act-btn-success'}" style="margin-left:.3rem;" onclick="toggleBookActive(${b.id})">${b.active ? 'Deactivate' : 'Activate'}</button>
+          </td>
+        </tr>`).join('');
+    }
+
+    async function updateStock(bookId) {
+      const qty = parseInt(document.getElementById('stock-' + bookId).value);
+      if (isNaN(qty) || qty < 0) { showToast('Invalid stock quantity.', 'error'); return; }
+      try {
+        await api.patch('/admin/books/' + bookId + '/stock', { stockQuantity: qty, quantity: qty });
+        showToast('Stock updated!', 'success');
+      } catch (e) {
+        showToast(e.message || 'Could not update stock.', 'error');
+      }
+    }
+
+    async function toggleBookActive(bookId) {
+      try {
+        await api.patch('/admin/books/' + bookId + '/toggle-active');
+        showToast('Book status updated!', 'success');
+        await loadAdminBooks();
+      } catch (e) {
+        showToast(e.message || 'Could not toggle book.', 'error');
+      }
+    }
+
+    function renderBooksPages() {
+      renderPageBar('books-pag', booksPage, booksTotalPages, (p) => { booksPage = p; loadAdminBooks(); });
+    }
+
+    function openAddBookModal() {
+      currentEditId = null;
+      currentModalAction = 'add-book';
+      document.getElementById('modal-title').textContent = 'Add New Book';
+      document.getElementById('modal-body').innerHTML = buildBookForm(null);
+      openModal();
+    }
+
+    async function openEditBookModal(bookId) {
+      currentEditId = bookId;
+      currentModalAction = 'edit-book';
+      document.getElementById('modal-title').textContent = 'Edit Book';
+      document.getElementById('modal-body').innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:1rem;">Loading…</p>';
+      openModal();
+      try {
+        const b = await api.get('/books/' + bookId);
+        document.getElementById('modal-body').innerHTML = buildBookForm(b);
+      } catch (e) {
+        document.getElementById('modal-body').innerHTML = `<p style="color:#DC2626;">${e.message}</p>`;
+      }
+    }
+
+    function buildBookForm(b) {
+      const cats = categoriesList.map(c => `<option value="${c.id}" ${b && b.category?.id === c.id ? 'selected' : ''}>${c.name}</option>`).join('');
+      return `
+        <div class="modal-form-grid">
+          <div class="modal-form-group"><label class="modal-label">Title *</label><input class="modal-input" id="bf-title" value="${b ? b.title : ''}" required /></div>
+          <div class="modal-form-group"><label class="modal-label">Author *</label><input class="modal-input" id="bf-author" value="${b ? b.author : ''}" required /></div>
+          <div class="modal-form-group"><label class="modal-label">ISBN *</label><input class="modal-input" id="bf-isbn" value="${b ? b.isbn : ''}" required /></div>
+          <div class="modal-form-group"><label class="modal-label">Category *</label><select class="modal-input" id="bf-category"><option value="">Select…</option>${cats}</select></div>
+          <div class="modal-form-group"><label class="modal-label">Price ($) *</label><input class="modal-input" type="number" step="0.01" min="0.01" id="bf-price" value="${b ? b.price : ''}" required /></div>
+          <div class="modal-form-group"><label class="modal-label">Discounted Price ($)</label><input class="modal-input" type="number" step="0.01" min="0" id="bf-discprice" value="${b && b.discountedPrice ? b.discountedPrice : ''}" placeholder="Optional" /></div>
+          <div class="modal-form-group"><label class="modal-label">Stock Quantity *</label><input class="modal-input" type="number" min="0" id="bf-stock" value="${b ? b.stockQuantity : 0}" required /></div>
+          <div class="modal-form-group"><label class="modal-label">Publisher</label><input class="modal-input" id="bf-publisher" value="${b ? (b.publisher || '') : ''}" /></div>
+          <div class="modal-form-group"><label class="modal-label">Publication Date</label><input class="modal-input" type="date" id="bf-pubdate" value="${b && b.publicationDate ? b.publicationDate.substring(0,10) : ''}" /></div>
+          <div class="modal-form-group full"><label class="modal-label">Image URL</label><input class="modal-input" id="bf-image" value="${b ? (b.imageUrl || '') : ''}" placeholder="https://…" /></div>
+          <div class="modal-form-group full"><label class="modal-label">Description</label><textarea class="modal-input" id="bf-desc" rows="3">${b ? (b.description || '') : ''}</textarea></div>
+          <div class="modal-form-group"><label class="modal-check-row"><input type="checkbox" id="bf-featured" ${b && b.featured ? 'checked' : ''} /> Featured Book</label></div>
+          <div class="modal-form-group"><label class="modal-check-row"><input type="checkbox" id="bf-active" ${!b || b.active ? 'checked' : ''} /> Active (visible in store)</label></div>
+        </div>`;
+    }
+
+    async function saveBookModal() {
+      const title = document.getElementById('bf-title').value.trim();
+      const author = document.getElementById('bf-author').value.trim();
+      const isbn = document.getElementById('bf-isbn').value.trim();
+      const categoryId = parseInt(document.getElementById('bf-category').value);
+      const price = parseFloat(document.getElementById('bf-price').value);
+      const discPrice = document.getElementById('bf-discprice').value ? parseFloat(document.getElementById('bf-discprice').value) : null;
+      const stock = parseInt(document.getElementById('bf-stock').value);
+
+      if (!title || !author || !isbn || !categoryId || isNaN(price)) {
+        showToast('Please fill all required fields.', 'error');
+        return;
+      }
+      const payload = {
+        title, author, isbn, categoryId, price,
+        originalPrice: discPrice,
+        discountedPrice: discPrice,
+        stockQuantity: stock,
+        coverImageUrl: document.getElementById('bf-image').value.trim() || 'assets/placeholder.svg',
+        imageUrl: document.getElementById('bf-image').value.trim() || 'assets/placeholder.svg',
+        publisher: document.getElementById('bf-publisher').value.trim() || null,
+        publicationDate: document.getElementById('bf-pubdate').value || null,
+        description: document.getElementById('bf-desc').value.trim() || 'No description provided for this title.',
+        featured: document.getElementById('bf-featured').checked,
+        active: document.getElementById('bf-active').checked
+      };
+      const btn = document.getElementById('modal-submit-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Saving…';
+      try {
+        if (currentEditId) {
+          await api.put('/admin/books/' + currentEditId, payload);
+        } else {
+          await api.post('/admin/books', payload);
+        }
+        showToast('Book saved!', 'success');
+        closeModal();
+        await loadAdminBooks();
+      } catch (e) {
+        showToast(e.message || 'Error saving book.', 'error');
+      }
+      btn.disabled = false;
+      btn.innerHTML = 'Save';
+    }
+
+    // ===== ORDERS =====
+    async function loadAdminOrders() {
+      document.getElementById('orders-tbody').innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:2rem;">Loading…</td></tr>';
+      try {
+        const res = await api.get('/admin/orders', { page: ordersPage, size: PAGE_SIZE });
+        const data = (res && res.data !== undefined) ? res.data : res;
+        const orders = data.content || [];
+        ordersTotalPages = data.totalPages || 1;
+        const tbody = document.getElementById('orders-tbody');
+        if (!orders.length) {
+          tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:2rem;">No orders found.</td></tr>';
+        } else {
+          tbody.innerHTML = orders.map(o => {
+            const statuses = ['PENDING','CONFIRMED','PROCESSING','SHIPPED','DELIVERED','CANCELLED'];
+            return `
+              <tr>
+                <td><strong style="font-size:.82rem;">#${o.orderNumber || o.id}</strong></td>
+                <td style="font-size:.82rem;">${o.shippingName || '—'}</td>
+                <td style="font-size:.8rem;color:var(--text-muted);">${new Date(o.orderDate).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</td>
+                <td style="font-size:.82rem;">${(o.items || []).length} item${(o.items||[]).length!==1?'s':''}</td>
+                <td style="font-weight:700;font-size:.85rem;">${formatPrice(o.totalAmount)}</td>
+                <td style="font-size:.8rem;">${o.paymentMethod || '—'}</td>
+                <td><span class="status-pill status-${o.status}">${o.status}</span></td>
+                <td>
+                  <select class="status-select" onchange="updateOrderStatus(${o.id}, this.value)">
+                    ${statuses.map(s => `<option value="${s}" ${s === o.status ? 'selected' : ''}>${s}</option>`).join('')}
+                  </select>
+                </td>
+              </tr>`;
+          }).join('');
+        }
+        renderPageBar('orders-pag', ordersPage, ordersTotalPages, (p) => { ordersPage = p; loadAdminOrders(); });
+      } catch (e) {
+        document.getElementById('orders-tbody').innerHTML = `<tr><td colspan="8" style="text-align:center;color:#DC2626;padding:2rem;">${e.message}</td></tr>`;
+      }
+    }
+
+    async function updateOrderStatus(orderId, newStatus) {
+      try {
+        await api.patch('/admin/orders/' + orderId + '/status', { status: newStatus });
+        showToast('Order status updated to ' + newStatus, 'success');
+      } catch (e) {
+        showToast(e.message || 'Could not update status.', 'error');
+        await loadAdminOrders();
+      }
+    }
+
+    // ===== CUSTOMERS =====
+    async function loadCustomers() {
+      document.getElementById('customers-tbody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem;">Loading…</td></tr>';
+      try {
+        const res = await api.get('/admin/customers', { page: customersPage, size: PAGE_SIZE });
+        const data = (res && res.data !== undefined) ? res.data : res;
+        const users = Array.isArray(data) ? data : (data.content || []);
+        customersTotalPages = data.totalPages || 1;
+        const tbody = document.getElementById('customers-tbody');
+        tbody.innerHTML = users.length ? users.map(u => `
+          <tr>
+            <td><strong>${u.fullName || '—'}</strong></td>
+            <td style="font-size:.82rem;color:var(--text-secondary);">${u.email}</td>
+            <td style="font-size:.82rem;">${u.phone || '—'}</td>
+            <td><span class="active-badge ${u.role==='ADMIN'?'badge-active':'badge-inactive'}" style="${u.role==='ADMIN'?'background:#FEF3C7;color:#92400E;':''}">${u.role}</span></td>
+            <td style="font-size:.8rem;color:var(--text-muted);">${u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—'}</td>
+            <td><span class="active-badge ${u.active!==false?'badge-active':'badge-inactive'}">${u.active!==false?'Active':'Inactive'}</span></td>
+          </tr>`).join('')
+          : '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem;">No users found.</td></tr>';
+        renderPageBar('customers-pag', customersPage, customersTotalPages, (p) => { customersPage = p; loadCustomers(); });
+      } catch (e) {
+        document.getElementById('customers-tbody').innerHTML = `<tr><td colspan="6" style="text-align:center;color:#DC2626;padding:2rem;">${e.message}</td></tr>`;
+      }
+    }
+
+    // ===== MODAL =====
+    function openModal() {
+      document.getElementById('modal-overlay').classList.add('open');
+      document.getElementById('modal-submit-btn').innerHTML = 'Save';
+      document.getElementById('modal-submit-btn').disabled = false;
+    }
+
+    function closeModal() {
+      document.getElementById('modal-overlay').classList.remove('open');
+      currentModalAction = null;
+      currentEditId = null;
+    }
+
+    function handleOverlayClick(e) {
+      if (e.target === document.getElementById('modal-overlay')) closeModal();
+    }
+
+    function handleModalSubmit() {
+      if (currentModalAction === 'add-category' || currentModalAction === 'edit-category') saveCategoryModal();
+      else if (currentModalAction === 'add-book' || currentModalAction === 'edit-book') saveBookModal();
+    }
+
+    // ===== PAGINATION HELPER =====
+    function renderPageBar(containerId, currentPage, totalPages, callback) {
+      const el = document.getElementById(containerId);
+      if (!el) return;
+      if (totalPages <= 1) { el.innerHTML = ''; return; }
+      let html = `<span style="color:var(--text-muted);">Page ${currentPage+1} of ${totalPages}</span>`;
+      html += '<div class="pag-btns">';
+      html += `<button onclick="(${callback.toString()})(${currentPage-1})" ${currentPage===0?'disabled':''}>← Prev</button>`;
+      const start = Math.max(0, currentPage - 2);
+      const end = Math.min(totalPages - 1, currentPage + 2);
+      for (let i = start; i <= end; i++) {
+        html += `<button class="${i===currentPage?'active':''}" onclick="(${callback.toString()})(${i})">${i+1}</button>`;
+      }
+      html += `<button onclick="(${callback.toString()})(${currentPage+1})" ${currentPage>=totalPages-1?'disabled':''}>Next →</button>`;
+      html += '</div>';
+      el.innerHTML = html;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Orders – BookNest</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .page-hero { background:linear-gradient(135deg,#1A1A2E,#2D2D4E); color:#fff; padding:2rem 0; }
+    .page-hero h1 { font-family:'Playfair Display',serif; font-size:2rem; font-weight:700; }
+    .orders-wrap { padding:2rem 0 4rem; max-width:860px; margin:0 auto; }
+    /* Success banner */
+    .success-banner { background:#D1FAE5; border:1px solid #6EE7B7; border-radius:12px; padding:1rem 1.5rem; margin-bottom:1.5rem; display:flex; align-items:center; gap:1rem; color:#065F46; }
+    .success-banner strong { font-size:1rem; }
+    /* Order card */
+    .order-card { background:#fff; border:1px solid var(--border-color); border-radius:16px; margin-bottom:1.2rem; overflow:hidden; transition:box-shadow .2s; }
+    .order-card:hover { box-shadow:0 4px 20px rgba(0,0,0,.07); }
+    .order-card-header { padding:1.2rem 1.5rem; display:flex; align-items:center; gap:1rem; flex-wrap:wrap; cursor:pointer; user-select:none; }
+    .order-number { font-weight:700; color:var(--text-primary); font-size:.95rem; }
+    .order-date { font-size:.82rem; color:var(--text-muted); }
+    .order-total { font-weight:700; color:var(--text-primary); margin-left:auto; }
+    .status-badge { display:inline-flex; align-items:center; padding:.25rem .75rem; border-radius:20px; font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; }
+    .status-PENDING { background:#FEF3C7; color:#92400E; }
+    .status-CONFIRMED { background:#DBEAFE; color:#1E40AF; }
+    .status-PROCESSING { background:#FED7AA; color:#C2410C; }
+    .status-SHIPPED { background:#EDE9FE; color:#5B21B6; }
+    .status-DELIVERED { background:#D1FAE5; color:#065F46; }
+    .status-CANCELLED { background:#F3F4F6; color:#6B7280; }
+    .expand-icon { margin-left:.5rem; transition:transform .25s; font-size:.8rem; color:var(--text-muted); }
+    .order-card.open .expand-icon { transform:rotate(180deg); }
+    /* Order items */
+    .order-items { border-top:1px solid var(--border-color); padding:0 1.5rem; display:none; }
+    .order-card.open .order-items { display:block; }
+    .order-item-row { display:flex; align-items:center; gap:1rem; padding:1rem 0; border-bottom:1px solid var(--border-color); font-size:.875rem; }
+    .order-item-row:last-child { border-bottom:none; }
+    .order-item-img { width:50px; height:65px; object-fit:cover; border-radius:6px; flex-shrink:0; }
+    .order-item-title { font-weight:600; color:var(--text-primary); }
+    .order-item-meta { color:var(--text-muted); font-size:.8rem; }
+    .order-item-price { margin-left:auto; font-weight:700; color:var(--text-primary); white-space:nowrap; }
+    /* Order meta bar */
+    .order-meta-bar { padding:.75rem 1.5rem; background:var(--bg-primary); border-top:1px solid var(--border-color); display:flex; align-items:center; gap:1.5rem; font-size:.82rem; color:var(--text-muted); flex-wrap:wrap; }
+    .order-meta-bar .payment-info { display:flex; align-items:center; gap:.3rem; }
+    .cancel-order-btn { background:none; border:1px solid #DC2626; color:#DC2626; border-radius:8px; padding:.3rem .85rem; font-size:.8rem; font-weight:600; cursor:pointer; font-family:inherit; margin-left:auto; transition:all .15s; }
+    .cancel-order-btn:hover { background:#DC2626; color:#fff; }
+    /* Empty state */
+    .empty-orders { text-align:center; padding:4rem 2rem; }
+    .empty-orders .empty-icon { font-size:5rem; margin-bottom:1rem; }
+    .empty-orders h2 { font-family:'Playfair Display',serif; font-size:1.4rem; margin-bottom:.5rem; color:var(--text-primary); }
+    .empty-orders p { color:var(--text-secondary); margin-bottom:1.5rem; }
+    /* Skeleton */
+    .skel { background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; border-radius:8px; }
+    @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    /* Pagination */
+    .pagination { display:flex; align-items:center; justify-content:center; gap:.4rem; margin-top:2rem; flex-wrap:wrap; }
+    .pagination button { padding:.4rem .8rem; border:1.5px solid var(--border-color); border-radius:8px; background:#fff; color:var(--text-primary); font-family:inherit; font-size:.85rem; cursor:pointer; transition:all .15s; }
+    .pagination button:hover:not(:disabled) { border-color:var(--accent-primary); color:var(--accent-primary); }
+    .pagination button.active { background:var(--accent-primary); border-color:var(--accent-primary); color:#fff; }
+    .pagination button:disabled { opacity:.4; cursor:not-allowed; }
+  </style>
+</head>
+<body>
+  <div id="site-header"></div>
+  <section class="page-hero"><div class="container"><h1>My Orders</h1></div></section>
+  <main>
+    <div class="container">
+      <div class="orders-wrap">
+        <div id="success-banner" style="display:none;" class="success-banner">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          <div>
+            <strong>Order placed successfully!</strong>
+            <div id="success-order-id" style="font-size:.85rem;margin-top:.2rem;"></div>
+          </div>
+        </div>
+        <div id="orders-content">
+          ${Array(3).fill(0).map(() => `<div class="order-card" style="margin-bottom:1.2rem;"><div style="padding:1.2rem 1.5rem;display:flex;gap:1rem;"><div class="skel" style="height:18px;width:120px;"></div><div class="skel" style="height:18px;width:80px;margin-left:auto;"></div></div></div>`).join('')}
+        </div>
+        <div class="pagination" id="pagination"></div>
+      </div>
+    </div>
+  </main>
+  <div id="site-footer"></div>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/wishlist.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    let currentPage = 0, totalPages = 0;
+    const PAGE_SIZE = 10;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (window.auth) window.auth.requireAuth();
+
+      // Show success banner
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('success') === 'true') {
+        const banner = document.getElementById('success-banner');
+        const oid = params.get('orderId');
+        banner.style.display = 'flex';
+        if (oid) document.getElementById('success-order-id').textContent = 'Order reference: #' + oid;
+        // Clean URL
+        history.replaceState({}, '', 'orders.html');
+      }
+
+      await loadOrders();
+    });
+
+    async function loadOrders() {
+      try {
+        const res = await api.get('/orders', { page: currentPage, size: PAGE_SIZE });
+        const data = (res && res.data !== undefined) ? res.data : res;
+        const orders = data.content || (Array.isArray(data) ? data : []);
+        totalPages = data.totalPages || 1;
+
+        if (!orders.length && currentPage === 0) {
+          document.getElementById('orders-content').innerHTML = `
+            <div class="empty-orders">
+              <div class="empty-icon">📦</div>
+              <h2>No orders yet</h2>
+              <p>Start your reading journey and place your first order.</p>
+              <a href="books.html" class="btn btn-primary">Browse Books</a>
+            </div>`;
+          return;
+        }
+
+        document.getElementById('orders-content').innerHTML = orders.map(o => renderOrderCard(o)).join('');
+        renderPagination();
+      } catch (e) {
+        document.getElementById('orders-content').innerHTML = `<p style="color:#DC2626;text-align:center;padding:2rem;">${e.message || 'Could not load orders.'} <button onclick="loadOrders()" style="color:var(--accent-primary);background:none;border:none;cursor:pointer;font-weight:700;">Retry</button></p>`;
+      }
+    }
+
+    function renderOrderCard(order) {
+      const date = new Date(order.orderDate).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+      const canCancel = ['PENDING','CONFIRMED'].includes(order.status);
+      const payLabel = { COD:'Cash on Delivery', SIMULATED_CARD:'Card (Demo)', CREDIT_CARD:'Credit Card' }[order.paymentMethod] || order.paymentMethod;
+      const payStatusLabel = { PENDING:'Pending', PAID:'Paid', FAILED:'Failed', REFUNDED:'Refunded' }[order.paymentStatus] || order.paymentStatus;
+      const items = order.items || [];
+
+      return `
+        <div class="order-card" id="order-${order.id}">
+          <div class="order-card-header" onclick="toggleOrder(${order.id})">
+            <div>
+              <div class="order-number">#${order.orderNumber || order.id}</div>
+              <div class="order-date">${date}</div>
+            </div>
+            <span class="status-badge status-${order.status}">${order.status}</span>
+            <span class="order-total">${formatPrice(order.totalAmount)}</span>
+            <span class="expand-icon">▼</span>
+          </div>
+
+          <div class="order-items">
+            ${items.map(item => `
+              <div class="order-item-row">
+                <img class="order-item-img" src="${item.coverImageUrl || item.imageUrl || (item.book ? item.book.coverImageUrl : '') || 'assets/placeholder.svg'}" alt="${item.title}" onerror="handleImageError(this)" />
+                <div>
+                  <div class="order-item-title">${item.title}</div>
+                  <div class="order-item-meta">${item.author || ''} · Qty ${item.quantity} × ${formatPrice(item.unitPrice)}</div>
+                </div>
+                <span class="order-item-price">${formatPrice(item.lineTotal || item.unitPrice * item.quantity)}</span>
+              </div>`).join('')}
+
+            <div class="order-meta-bar">
+              <div class="payment-info">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                ${payLabel} · ${payStatusLabel}
+              </div>
+              <div>Subtotal: ${formatPrice(order.subtotal)} | Shipping: ${order.shippingCost == 0 ? 'FREE' : formatPrice(order.shippingCost)} | Tax: ${formatPrice(order.tax)}</div>
+              ${canCancel ? `<button class="cancel-order-btn" onclick="cancelOrder(${order.id}, event)">Cancel Order</button>` : ''}
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function toggleOrder(id) {
+      document.getElementById('order-' + id)?.classList.toggle('open');
+    }
+
+    async function cancelOrder(id, event) {
+      event.stopPropagation();
+      if (!confirm('Are you sure you want to cancel this order?')) return;
+      try {
+        await api.post('/orders/' + id + '/cancel');
+        showToast('Order cancelled successfully.', 'success');
+        await loadOrders();
+      } catch (e) {
+        showToast(e.message || 'Could not cancel order.', 'error');
+      }
+    }
+
+    function renderPagination() {
+      const pag = document.getElementById('pagination');
+      if (totalPages <= 1) { pag.innerHTML = ''; return; }
+      let html = `<button onclick="goPage(${currentPage - 1})" ${currentPage===0?'disabled':''}>← Prev</button>`;
+      for (let i = 0; i < totalPages; i++) {
+        html += `<button class="${i===currentPage?'active':''}" onclick="goPage(${i})">${i+1}</button>`;
+      }
+      html += `<button onclick="goPage(${currentPage + 1})" ${currentPage>=totalPages-1?'disabled':''}>Next →</button>`;
+      pag.innerHTML = html;
+    }
+
+    function goPage(p) { if (p < 0 || p >= totalPages) return; currentPage = p; loadOrders(); window.scrollTo({top:0,behavior:'smooth'}); }
+  </script>
+</body>
+</html>

@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checkout – BookNest</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .checkout-hero { background:linear-gradient(135deg,#1A1A2E,#2D2D4E); color:#fff; padding:2rem 0; }
+    .checkout-hero h1 { font-family:'Playfair Display',serif; font-size:2rem; font-weight:700; }
+    /* Steps */
+    .checkout-steps { display:flex; align-items:center; gap:0; margin:2rem 0 1.5rem; }
+    .step { display:flex; align-items:center; gap:.5rem; font-size:.85rem; font-weight:600; color:var(--text-muted); }
+    .step.active { color:var(--accent-primary); }
+    .step-circle { width:28px; height:28px; border-radius:50%; border:2px solid currentColor; display:flex; align-items:center; justify-content:center; font-size:.75rem; flex-shrink:0; }
+    .step.active .step-circle { background:var(--accent-primary); color:#fff; border-color:var(--accent-primary); }
+    .step-line { flex:1; height:2px; background:var(--border-color); margin:0 .5rem; max-width:60px; }
+    /* Layout */
+    .checkout-layout { display:grid; grid-template-columns:1fr 380px; gap:2rem; padding:0 0 4rem; align-items:start; }
+    /* Form cards */
+    .form-card { background:#fff; border-radius:16px; border:1px solid var(--border-color); padding:1.75rem; margin-bottom:1.5rem; }
+    .form-card-header { display:flex; align-items:center; gap:.75rem; margin-bottom:1.5rem; }
+    .form-card-header h2 { font-family:'Playfair Display',serif; font-size:1.15rem; font-weight:700; color:var(--text-primary); }
+    .form-card-header .step-badge { width:28px; height:28px; border-radius:50%; background:var(--accent-primary); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:.8rem; flex-shrink:0; }
+    /* Form fields */
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    .form-group { margin-bottom:1rem; }
+    .form-label { display:block; font-weight:600; font-size:.85rem; color:var(--text-primary); margin-bottom:.35rem; }
+    .form-label .opt { font-weight:400; color:var(--text-muted); }
+    .form-control { width:100%; padding:.7rem 1rem; border:1.5px solid var(--border-color); border-radius:10px; font-size:.9rem; font-family:inherit; background:var(--bg-primary); color:var(--text-primary); box-sizing:border-box; transition:border-color .2s; }
+    .form-control:focus { outline:none; border-color:var(--accent-primary); }
+    select.form-control { cursor:pointer; }
+    textarea.form-control { resize:vertical; min-height:80px; }
+    /* Payment method */
+    .payment-options { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    .payment-card { border:2px solid var(--border-color); border-radius:12px; padding:1.2rem; cursor:pointer; transition:all .2s; position:relative; }
+    .payment-card:hover { border-color:var(--accent-primary); }
+    .payment-card.selected { border-color:var(--accent-primary); background:linear-gradient(135deg,#FFF7F0,#FFF0E8); }
+    .payment-card input[type="radio"] { position:absolute; opacity:0; }
+    .payment-card-label { cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:.5rem; text-align:center; }
+    .payment-icon { font-size:2rem; }
+    .payment-name { font-weight:700; font-size:.9rem; color:var(--text-primary); }
+    .payment-desc { font-size:.78rem; color:var(--text-muted); }
+    .demo-warning { background:#FEF3C7; border:1px solid #F59E0B; border-radius:8px; padding:.75rem 1rem; font-size:.8rem; color:#92400E; margin-top:1rem; display:flex; gap:.5rem; }
+    .card-fields { display:none; margin-top:1rem; }
+    .card-fields.show { display:block; }
+    /* Submit button */
+    .btn-place-order { width:100%; padding:1rem; border:none; border-radius:12px; background:var(--accent-primary); color:#fff; font-weight:700; font-size:1.05rem; font-family:inherit; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:.6rem; transition:background .2s; }
+    .btn-place-order:hover:not(:disabled) { background:var(--accent-dark); }
+    .btn-place-order:disabled { opacity:.5; cursor:not-allowed; }
+    /* Summary */
+    .summary-sticky { background:#fff; border-radius:16px; border:1px solid var(--border-color); padding:1.5rem; position:sticky; top:90px; }
+    .summary-sticky h2 { font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:700; margin-bottom:1.25rem; color:var(--text-primary); }
+    .summary-item { display:flex; align-items:flex-start; gap:.75rem; margin-bottom:.9rem; font-size:.875rem; }
+    .summary-item img { width:45px; height:60px; object-fit:cover; border-radius:6px; flex-shrink:0; }
+    .summary-item-info { flex:1; }
+    .summary-item-title { font-weight:600; color:var(--text-primary); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .summary-item-meta { color:var(--text-muted); font-size:.78rem; }
+    .summary-item-price { font-weight:700; white-space:nowrap; color:var(--text-primary); }
+    .sum-divider { border:none; border-top:1px solid var(--border-color); margin:.75rem 0; }
+    .sum-row { display:flex; justify-content:space-between; font-size:.875rem; color:var(--text-secondary); margin-bottom:.5rem; }
+    .sum-row.total { font-weight:700; font-size:1rem; color:var(--text-primary); border-top:2px solid var(--border-color); padding-top:.75rem; margin-top:.5rem; }
+    .sum-row .free { color:#16A34A; font-weight:700; }
+    .secure-note { display:flex; align-items:center; gap:.4rem; font-size:.78rem; color:var(--text-muted); justify-content:center; margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border-color); }
+    /* Error */
+    .form-error-banner { background:#FEE2E2; border-radius:10px; padding:.75rem 1rem; color:#991B1B; font-size:.875rem; margin-bottom:1rem; display:none; }
+    .form-error-banner.show { display:block; }
+    @media (max-width:800px) { .checkout-layout { grid-template-columns:1fr; } .summary-sticky { position:static; } .form-row { grid-template-columns:1fr; } .payment-options { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <div id="site-header"></div>
+
+  <section class="checkout-hero">
+    <div class="container">
+      <h1>Checkout</h1>
+    </div>
+  </section>
+
+  <main>
+    <div class="container">
+      <div class="checkout-steps">
+        <div class="step"><div class="step-circle">✓</div> Cart</div>
+        <div class="step-line"></div>
+        <div class="step active"><div class="step-circle">2</div> Delivery</div>
+        <div class="step-line"></div>
+        <div class="step"><div class="step-circle">3</div> Confirmation</div>
+      </div>
+
+      <div class="form-error-banner" id="checkout-error"></div>
+
+      <div class="checkout-layout">
+        <!-- Form -->
+        <div>
+          <form id="checkout-form" novalidate>
+            <!-- Delivery -->
+            <div class="form-card">
+              <div class="form-card-header">
+                <div class="step-badge">1</div>
+                <h2>Delivery Information</h2>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="ship-name">Full Name</label>
+                  <input class="form-control" type="text" id="ship-name" required placeholder="Jane Austen" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="ship-phone">Phone Number</label>
+                  <input class="form-control" type="tel" id="ship-phone" required placeholder="+1 (555) 000-0000" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="ship-addr1">Address Line 1</label>
+                <input class="form-control" type="text" id="ship-addr1" required placeholder="42 Reader's Lane" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="ship-addr2">Address Line 2 <span class="opt">(optional)</span></label>
+                <input class="form-control" type="text" id="ship-addr2" placeholder="Apt, Suite, Floor…" />
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="ship-city">City</label>
+                  <input class="form-control" type="text" id="ship-city" required placeholder="New York" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="ship-state">State / Province</label>
+                  <input class="form-control" type="text" id="ship-state" required placeholder="NY" />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="ship-postal">Postal Code</label>
+                  <input class="form-control" type="text" id="ship-postal" required placeholder="10001" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="ship-country">Country</label>
+                  <select class="form-control" id="ship-country" required>
+                    <option value="United States">United States</option>
+                    <option value="Canada">Canada</option>
+                    <option value="United Kingdom">United Kingdom</option>
+                    <option value="Australia">Australia</option>
+                    <option value="India">India</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="ship-notes">Delivery Instructions <span class="opt">(optional)</span></label>
+                <textarea class="form-control" id="ship-notes" placeholder="Leave at door, ring bell, etc."></textarea>
+              </div>
+            </div>
+
+            <!-- Payment -->
+            <div class="form-card">
+              <div class="form-card-header">
+                <div class="step-badge">2</div>
+                <h2>Payment Method</h2>
+              </div>
+
+              <div class="payment-options">
+                <div class="payment-card selected" id="pay-cod-card" onclick="selectPayment('COD')">
+                  <input type="radio" name="payment" value="COD" id="pay-cod" checked />
+                  <label class="payment-card-label" for="pay-cod">
+                    <span class="payment-icon">💵</span>
+                    <span class="payment-name">Cash on Delivery</span>
+                    <span class="payment-desc">Pay when your order arrives</span>
+                  </label>
+                </div>
+                <div class="payment-card" id="pay-card-card" onclick="selectPayment('SIMULATED_CARD')">
+                  <input type="radio" name="payment" value="SIMULATED_CARD" id="pay-simcard" />
+                  <label class="payment-card-label" for="pay-simcard">
+                    <span class="payment-icon">💳</span>
+                    <span class="payment-name">Card (Demo)</span>
+                    <span class="payment-desc">Simulated — no real charges</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="card-fields" id="card-fields">
+                <div class="demo-warning">
+                  ⚠️ <strong>Demo Only.</strong> This is a simulated payment — no real card is charged. Do not enter real card details.
+                </div>
+                <div class="form-group" style="margin-top:.75rem;">
+                  <label class="form-label">Card Number</label>
+                  <input class="form-control" type="text" placeholder="1234 5678 9012 3456" maxlength="19" oninput="formatCardNum(this)" />
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Expiry</label>
+                    <input class="form-control" type="text" placeholder="MM/YY" maxlength="5" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">CVV</label>
+                    <input class="form-control" type="text" placeholder="123" maxlength="4" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" class="btn-place-order" id="place-order-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"></path></svg>
+              Place Order
+            </button>
+          </form>
+        </div>
+
+        <!-- Summary -->
+        <div class="summary-sticky">
+          <h2>Order Summary</h2>
+          <div id="checkout-summary-items">
+            <p style="color:var(--text-muted);font-size:.875rem;">Loading…</p>
+          </div>
+          <hr class="sum-divider" />
+          <div class="sum-row"><span>Subtotal</span><span id="sum-subtotal">—</span></div>
+          <div class="sum-row"><span>Shipping</span><span id="sum-ship">—</span></div>
+          <div class="sum-row"><span>Tax (5%)</span><span id="sum-tax">—</span></div>
+          <div class="sum-row total"><span>Order Total</span><span id="sum-total">—</span></div>
+          <div class="secure-note">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            Secure Checkout — Your data is encrypted
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/wishlist.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    const FREE_SHIP = 50, SHIP_FEE = 4.99, TAX = 0.05;
+    let selectedPayment = 'COD';
+    let cartItems = [];
+    let isSubmitting = false;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Auth guard
+      if (window.auth) window.auth.requireAuth();
+
+      // Pre-fill from user
+      const user = window.auth ? window.auth.getUser() : null;
+      if (user) {
+        document.getElementById('ship-name').value = user.fullName || '';
+        document.getElementById('ship-phone').value = user.phone || '';
+      }
+
+      await loadCheckoutSummary();
+    });
+
+    async function loadCheckoutSummary() {
+      try {
+        const data = await window.cart.getCart();
+        cartItems = data.items || [];
+        if (!cartItems.length) {
+          window.location.href = 'cart.html';
+          return;
+        }
+        renderSummary(cartItems);
+      } catch (e) {
+        document.getElementById('checkout-summary-items').innerHTML = '<p style="color:#DC2626;">Could not load cart.</p>';
+      }
+    }
+
+    function renderSummary(items) {
+      const subtotal = items.reduce((s, i) => {
+        const p = i.unitPrice || (i.book ? i.book.price : i.price) || 0;
+        return s + (i.lineTotal ? parseFloat(i.lineTotal) : (parseFloat(p) * i.quantity));
+      }, 0);
+      const shipping = subtotal >= FREE_SHIP ? 0 : SHIP_FEE;
+      const tax = subtotal * TAX;
+      const total = subtotal + shipping + tax;
+
+      document.getElementById('checkout-summary-items').innerHTML = items.map(item => {
+        const b = item.book || item;
+        const title = b.title || item.title || 'Book';
+        const author = b.author || item.author || '';
+        const price = item.unitPrice || b.price || item.price || 0;
+        const img = b.coverImageUrl || b.imageUrl || item.imageUrl || 'assets/placeholder.svg';
+        const itemTotal = item.lineTotal ? parseFloat(item.lineTotal) : (parseFloat(price) * item.quantity);
+        return `
+          <div class="summary-item">
+            <img src="${img}" alt="${title}" onerror="handleImageError(this)" />
+            <div class="summary-item-info">
+              <div class="summary-item-title">${title}</div>
+              <div class="summary-item-meta">${author} · Qty ${item.quantity}</div>
+            </div>
+            <span class="summary-item-price">${formatPrice(itemTotal)}</span>
+          </div>`;
+      }).join('');
+
+      document.getElementById('sum-subtotal').textContent = formatPrice(subtotal);
+      document.getElementById('sum-ship').innerHTML = shipping === 0 ? '<span class="free">FREE</span>' : formatPrice(shipping);
+      document.getElementById('sum-tax').textContent = formatPrice(tax);
+      document.getElementById('sum-total').textContent = formatPrice(total);
+    }
+
+    function selectPayment(method) {
+      selectedPayment = method;
+      document.getElementById('pay-cod-card').classList.toggle('selected', method === 'COD');
+      document.getElementById('pay-card-card').classList.toggle('selected', method === 'SIMULATED_CARD');
+      document.getElementById('pay-cod').checked = method === 'COD';
+      document.getElementById('pay-simcard').checked = method === 'SIMULATED_CARD';
+      document.getElementById('card-fields').classList.toggle('show', method === 'SIMULATED_CARD');
+    }
+
+    function formatCardNum(input) {
+      let v = input.value.replace(/\D/g, '').substring(0, 16);
+      input.value = v.replace(/(\d{4})(?=\d)/g, '$1 ');
+    }
+
+    document.getElementById('checkout-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (isSubmitting) return;
+
+      const errEl = document.getElementById('checkout-error');
+      errEl.classList.remove('show');
+
+      // Validate required fields
+      const required = ['ship-name','ship-phone','ship-addr1','ship-city','ship-state','ship-postal'];
+      for (const id of required) {
+        const el = document.getElementById(id);
+        if (!el.value.trim()) {
+          el.focus();
+          errEl.textContent = 'Please fill in all required delivery fields.';
+          errEl.classList.add('show');
+          errEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
+      }
+
+      const btn = document.getElementById('place-order-btn');
+      isSubmitting = true;
+      btn.disabled = true;
+      btn.innerHTML = `<span style="display:inline-block;width:18px;height:18px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite;"></span> Placing order…`;
+
+      const addr2 = document.getElementById('ship-addr2').value.trim();
+      const payload = {
+        customerName: document.getElementById('ship-name').value.trim(),
+        customerPhone: document.getElementById('ship-phone').value.trim(),
+        deliveryAddress: document.getElementById('ship-addr1').value.trim() + (addr2 ? ', ' + addr2 : ''),
+        city: document.getElementById('ship-city').value.trim(),
+        state: document.getElementById('ship-state').value.trim(),
+        postalCode: document.getElementById('ship-postal').value.trim(),
+        deliveryInstructions: document.getElementById('ship-notes').value.trim(),
+        paymentMethod: selectedPayment
+      };
+
+      try {
+        const response = await api.post('/orders', payload);
+        const orderData = (response && response.data) ? response.data : response;
+        const orderRef = orderData.orderNumber || orderData.id || '';
+        window.location.href = 'orders.html?success=true&orderId=' + encodeURIComponent(orderRef);
+      } catch (err) {
+        errEl.textContent = err.message || 'Could not place order. Please try again.';
+        errEl.classList.add('show');
+        errEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        isSubmitting = false;
+        btn.disabled = false;
+        btn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"></path></svg> Place Order`;
+      }
+    });
+
+    // Spinner keyframe
+    const style = document.createElement('style');
+    style.textContent = '@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}';
+    document.head.appendChild(style);
+  </script>
+</body>
+</html>

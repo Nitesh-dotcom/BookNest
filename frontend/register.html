@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Account – BookNest</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .auth-page { min-height: 100vh; display: flex; flex-direction: column; background: var(--bg-primary); }
+    .auth-main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 3rem 1rem; }
+    .auth-wrap { display: grid; grid-template-columns: 1fr 1fr; max-width: 900px; width: 100%; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.12); }
+    .auth-panel { background: #fff; padding: 2.5rem; display: flex; flex-direction: column; justify-content: center; }
+    .auth-side { background: linear-gradient(135deg, #1A1A2E 0%, #2D2D4E 100%); padding: 3rem; display: flex; flex-direction: column; justify-content: center; color: #fff; }
+    .auth-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; margin-bottom: 1.5rem; }
+    .auth-logo svg { width: 30px; height: 30px; stroke: var(--accent-primary); }
+    .auth-logo span { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 700; color: var(--text-primary); }
+    .auth-title { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.3rem; }
+    .auth-subtitle { color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.9rem; }
+    .form-group { margin-bottom: 1rem; }
+    .form-label { display: block; font-weight: 600; font-size: 0.875rem; color: var(--text-primary); margin-bottom: 0.35rem; }
+    .input-wrap { position: relative; }
+    .input-wrap input { width: 100%; padding: 0.7rem 2.5rem 0.7rem 1rem; border: 1.5px solid var(--border-color); border-radius: 10px; font-size: 0.925rem; font-family: inherit; background: var(--bg-primary); color: var(--text-primary); transition: border-color 0.2s; box-sizing: border-box; }
+    .input-wrap input:focus { outline: none; border-color: var(--accent-primary); }
+    .input-wrap input.error-field { border-color: #EF4444; }
+    .field-error { font-size: 0.8rem; color: #EF4444; margin-top: 0.25rem; display: none; }
+    .field-error.show { display: block; }
+    .toggle-pw { position: absolute; right: 0.7rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 2px; }
+    /* Password strength */
+    .pw-strength { margin-top: 0.5rem; }
+    .pw-strength-bar { display: flex; gap: 3px; margin-bottom: 0.3rem; }
+    .pw-strength-bar span { flex: 1; height: 4px; border-radius: 2px; background: var(--border-color); transition: background 0.3s; }
+    .pw-strength-bar span.weak { background: #EF4444; }
+    .pw-strength-bar span.fair { background: #F59E0B; }
+    .pw-strength-bar span.good { background: #3B82F6; }
+    .pw-strength-bar span.strong { background: #10B981; }
+    .pw-strength-text { font-size: 0.78rem; color: var(--text-muted); }
+    /* Terms */
+    .terms-row { display: flex; align-items: flex-start; gap: 0.6rem; margin-bottom: 1rem; }
+    .terms-row input[type="checkbox"] { margin-top: 3px; accent-color: var(--accent-primary); width: 16px; height: 16px; flex-shrink: 0; cursor: pointer; }
+    .terms-row label { font-size: 0.85rem; color: var(--text-secondary); cursor: pointer; }
+    .terms-row a { color: var(--accent-primary); font-weight: 600; text-decoration: none; }
+    /* Error banner */
+    .auth-error { background: #FEE2E2; color: #991B1B; border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.875rem; margin-bottom: 1rem; display: none; }
+    .auth-error.show { display: block; }
+    .btn-auth { width: 100%; padding: 0.82rem; font-size: 0.975rem; font-weight: 600; border-radius: 10px; cursor: pointer; border: none; background: var(--accent-primary); color: #fff; font-family: inherit; transition: background 0.2s, transform 0.1s; }
+    .btn-auth:hover { background: var(--accent-dark); }
+    .btn-auth:active { transform: scale(0.98); }
+    .btn-auth:disabled { opacity: 0.6; cursor: not-allowed; }
+    .auth-links { margin-top: 1.2rem; text-align: center; font-size: 0.875rem; color: var(--text-secondary); }
+    .auth-links a { color: var(--accent-primary); font-weight: 600; text-decoration: none; }
+    /* Side panel */
+    .side-tagline { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: #fff; margin-bottom: 1rem; line-height: 1.4; }
+    .side-desc { color: rgba(255,255,255,0.7); font-size: 0.875rem; line-height: 1.7; margin-bottom: 2rem; }
+    .side-features { list-style: none; padding: 0; margin: 0; }
+    .side-features li { display: flex; align-items: flex-start; gap: 0.75rem; color: rgba(255,255,255,0.85); font-size: 0.85rem; margin-bottom: 1rem; }
+    .side-features li svg { flex-shrink: 0; margin-top: 2px; stroke: #B85D36; }
+    .side-quote { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.15); font-style: italic; color: rgba(255,255,255,0.6); font-size: 0.85rem; line-height: 1.6; }
+    @media (max-width: 700px) { .auth-wrap { grid-template-columns: 1fr; } .auth-side { display: none; } .auth-panel { padding: 1.8rem 1.2rem; } }
+  </style>
+</head>
+<body class="auth-page">
+  <div id="site-header"></div>
+
+  <main class="auth-main">
+    <div class="auth-wrap">
+      <!-- Right: Side panel -->
+      <div class="auth-side">
+        <p class="side-tagline">Join a community of passionate readers</p>
+        <p class="side-desc">Start your BookNest journey today and unlock a world of curated literature, thoughtful recommendations, and seamless shopping.</p>
+        <ul class="side-features">
+          <li>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Free account — no hidden fees
+          </li>
+          <li>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Persistent wishlist and cart across devices
+          </li>
+          <li>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Write verified reviews for books you've purchased
+          </li>
+          <li>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Free shipping on all orders over $50
+          </li>
+        </ul>
+        <p class="side-quote">"A reader lives a thousand lives before he dies. The man who never reads lives only one." — George R.R. Martin</p>
+      </div>
+
+      <!-- Left: Form -->
+      <div class="auth-panel">
+        <a href="index.html" class="auth-logo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+          <span>BookNest</span>
+        </a>
+
+        <h1 class="auth-title">Create your account</h1>
+        <p class="auth-subtitle">It's free and takes less than a minute</p>
+
+        <div class="auth-error" id="error-msg"></div>
+
+        <form id="register-form" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="fullName">Full Name</label>
+            <div class="input-wrap">
+              <input type="text" id="fullName" name="fullName" placeholder="Jane Austen" required minlength="2" autocomplete="name" />
+            </div>
+            <div class="field-error" id="name-err">Please enter your full name (at least 2 characters).</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="email">Email Address</label>
+            <div class="input-wrap">
+              <input type="email" id="email" name="email" placeholder="you@example.com" required autocomplete="email" />
+            </div>
+            <div class="field-error" id="email-err">Please enter a valid email address.</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="phone">Phone Number <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
+            <div class="input-wrap">
+              <input type="tel" id="phone" name="phone" placeholder="+1 (555) 000-0000" autocomplete="tel" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="password">Password</label>
+            <div class="input-wrap">
+              <input type="password" id="password" name="password" placeholder="Min. 8 characters" required minlength="8" autocomplete="new-password" />
+              <button type="button" class="toggle-pw" id="toggle-pw1" aria-label="Show password">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+            <div class="pw-strength" id="pw-strength" style="display:none;">
+              <div class="pw-strength-bar">
+                <span id="s1"></span><span id="s2"></span><span id="s3"></span><span id="s4"></span>
+              </div>
+              <div class="pw-strength-text" id="pw-label"></div>
+            </div>
+            <div class="field-error" id="pw-err">Password must be at least 8 characters.</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="confirmPassword">Confirm Password</label>
+            <div class="input-wrap">
+              <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Re-enter your password" required autocomplete="new-password" />
+              <button type="button" class="toggle-pw" id="toggle-pw2" aria-label="Show confirm password">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+            <div class="field-error" id="confirm-err">Passwords do not match.</div>
+          </div>
+
+          <div class="terms-row">
+            <input type="checkbox" id="terms" required />
+            <label for="terms">I agree to BookNest's <a href="about.html">Terms of Service</a> and <a href="about.html">Privacy Policy</a></label>
+          </div>
+          <div class="field-error" id="terms-err">You must accept the terms to continue.</div>
+
+          <button type="submit" class="btn-auth" id="register-btn">Create Account</button>
+        </form>
+
+        <div class="auth-links">
+          Already have an account? <a href="#" id="login-link">Sign in</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/wishlist.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    (function () {
+      if (window.auth && window.auth.isLoggedIn()) {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      const redirectUrl = params.get('redirect') || 'index.html';
+      document.getElementById('login-link').href = 'login.html' + (params.get('redirect') ? '?redirect=' + encodeURIComponent(redirectUrl) : '');
+
+      // Toggle password helper
+      function makeToggle(btnId, inputId) {
+        document.getElementById(btnId).addEventListener('click', () => {
+          const inp = document.getElementById(inputId);
+          inp.type = inp.type === 'password' ? 'text' : 'password';
+        });
+      }
+      makeToggle('toggle-pw1', 'password');
+      makeToggle('toggle-pw2', 'confirmPassword');
+
+      // Password strength meter
+      const pwInput = document.getElementById('password');
+      const strengthWrap = document.getElementById('pw-strength');
+      const pwLabel = document.getElementById('pw-label');
+      const bars = [document.getElementById('s1'), document.getElementById('s2'), document.getElementById('s3'), document.getElementById('s4')];
+      const levels = ['', 'weak', 'fair', 'good', 'strong'];
+      const labels = ['', 'Weak', 'Fair', 'Good — almost there', 'Strong'];
+      const colors = ['', '#EF4444', '#F59E0B', '#3B82F6', '#10B981'];
+
+      pwInput.addEventListener('input', () => {
+        const v = pwInput.value;
+        if (!v) { strengthWrap.style.display = 'none'; return; }
+        strengthWrap.style.display = 'block';
+        let score = 0;
+        if (v.length >= 8) score++;
+        if (/[0-9]/.test(v)) score++;
+        if (/[A-Z]/.test(v)) score++;
+        if (/[^A-Za-z0-9]/.test(v)) score++;
+        bars.forEach((b, i) => {
+          b.className = '';
+          if (i < score) b.classList.add(levels[score]);
+        });
+        pwLabel.textContent = labels[score];
+        pwLabel.style.color = colors[score];
+      });
+
+      // Form validation helpers
+      function showErr(id, show) {
+        document.getElementById(id).classList.toggle('show', show);
+      }
+
+      // Form submit
+      document.getElementById('register-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fullName = document.getElementById('fullName').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        const password = document.getElementById('password').value;
+        const confirm = document.getElementById('confirmPassword').value;
+        const terms = document.getElementById('terms').checked;
+
+        // Clear all errors
+        ['name-err','email-err','pw-err','confirm-err','terms-err'].forEach(id => showErr(id, false));
+        document.getElementById('error-msg').classList.remove('show');
+
+        let valid = true;
+        if (!fullName || fullName.length < 2) { showErr('name-err', true); valid = false; }
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('email-err', true); valid = false; }
+        if (!password || password.length < 8) { showErr('pw-err', true); valid = false; }
+        if (password !== confirm) { showErr('confirm-err', true); valid = false; }
+        if (!terms) { showErr('terms-err', true); valid = false; }
+        if (!valid) return;
+
+        const btn = document.getElementById('register-btn');
+        btn.disabled = true;
+        btn.textContent = 'Creating account…';
+
+        try {
+          await window.auth.register({ fullName, email, phone: phone || null, password });
+          btn.textContent = 'Success! Redirecting…';
+          const loginUrl = 'login.html?registered=true' + (redirectUrl !== 'index.html' ? '&redirect=' + encodeURIComponent(redirectUrl) : '');
+          setTimeout(() => { window.location.href = loginUrl; }, 1200);
+        } catch (err) {
+          const errEl = document.getElementById('error-msg');
+          errEl.textContent = err.message || 'Could not create account. Please try again.';
+          errEl.classList.add('show');
+          btn.disabled = false;
+          btn.textContent = 'Create Account';
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+# Maven target directory
+target/
+backend/target/
+*.jar
+*.war
+
+# Environment and sensitive data
+.env
+*.env.local
+*.log
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Node / frontend build (if any in future)
+node_modules/
+.npm/
+
+# Database dumps and local storage
+*.sql.bak
+mysql_data/

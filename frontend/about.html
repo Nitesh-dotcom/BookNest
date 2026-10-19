@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About BookNest – Independent Online Bookstore</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* Hero */
+    .about-hero { background:linear-gradient(135deg,#1A1A2E 0%,#2D2D4E 100%); padding:5rem 0; text-align:center; }
+    .about-hero h1 { font-family:'Playfair Display',serif; font-size:clamp(2rem,5vw,3rem); font-weight:700; color:#fff; margin-bottom:1rem; }
+    .about-hero p { color:rgba(255,255,255,.7); font-size:1.1rem; max-width:600px; margin:0 auto; line-height:1.7; }
+    /* Story section */
+    .story-section { padding:5rem 0; }
+    .story-grid { display:grid; grid-template-columns:1fr 1fr; gap:4rem; align-items:center; }
+    .story-text h2 { font-family:'Playfair Display',serif; font-size:2rem; font-weight:700; color:var(--text-primary); margin-bottom:1.25rem; }
+    .story-text p { color:var(--text-secondary); line-height:1.8; margin-bottom:1rem; font-size:.975rem; }
+    .founding-badge { display:inline-flex; align-items:center; gap:.5rem; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:10px; padding:.6rem 1.2rem; font-size:.85rem; font-weight:600; color:var(--accent-primary); margin-bottom:1.5rem; }
+    .story-visual { background:linear-gradient(135deg,#B85D36,#E07B54); border-radius:24px; padding:3rem; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; min-height:300px; }
+    .story-visual .big-icon { font-size:5rem; margin-bottom:1rem; }
+    .story-visual p { color:rgba(255,255,255,.85); font-style:italic; line-height:1.7; font-size:.975rem; }
+    /* Values section */
+    .values-section { padding:4rem 0; background:var(--bg-secondary); }
+    .values-section h2 { font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:700; color:var(--text-primary); text-align:center; margin-bottom:.5rem; }
+    .values-subtitle { text-align:center; color:var(--text-secondary); margin-bottom:3rem; }
+    .values-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1.5rem; }
+    .value-card { background:#fff; border-radius:16px; padding:2rem 1.5rem; text-align:center; border:1px solid var(--border-color); transition:box-shadow .2s; }
+    .value-card:hover { box-shadow:0 8px 30px rgba(0,0,0,.08); }
+    .value-icon { font-size:2.5rem; margin-bottom:1rem; }
+    .value-card h3 { font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:700; color:var(--text-primary); margin-bottom:.5rem; }
+    .value-card p { font-size:.875rem; color:var(--text-secondary); line-height:1.6; }
+    /* Team */
+    .team-section { padding:5rem 0; }
+    .team-section h2 { font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:700; color:var(--text-primary); text-align:center; margin-bottom:.5rem; }
+    .team-subtitle { text-align:center; color:var(--text-secondary); margin-bottom:3rem; }
+    .team-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:2rem; max-width:800px; margin:0 auto; }
+    .team-card { text-align:center; background:#fff; border-radius:16px; padding:2rem 1.5rem; border:1px solid var(--border-color); }
+    .team-avatar { width:80px; height:80px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.8rem; font-weight:700; color:#fff; margin:0 auto 1rem; font-family:'Playfair Display',serif; }
+    .team-card h3 { font-weight:700; color:var(--text-primary); margin-bottom:.25rem; font-size:1rem; }
+    .team-card p { font-size:.82rem; color:var(--text-muted); }
+    /* Stats */
+    .numbers-section { padding:4rem 0; background:linear-gradient(135deg,#1A1A2E,#2D2D4E); }
+    .numbers-section h2 { font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:700; color:#fff; text-align:center; margin-bottom:2.5rem; }
+    .numbers-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1.5rem; }
+    .number-card { text-align:center; }
+    .number-val { font-family:'Playfair Display',serif; font-size:2.5rem; font-weight:700; color:var(--accent-primary); }
+    .number-label { font-size:.875rem; color:rgba(255,255,255,.6); margin-top:.3rem; }
+    /* Quote */
+    .quote-section { padding:5rem 0; text-align:center; }
+    .quote-section blockquote { max-width:700px; margin:0 auto; font-family:'Playfair Display',serif; font-size:1.4rem; font-style:italic; color:var(--text-primary); line-height:1.7; position:relative; }
+    .quote-section blockquote::before { content:'"'; font-size:6rem; color:var(--accent-primary); opacity:.15; position:absolute; top:-2.5rem; left:-1rem; line-height:1; font-style:normal; }
+    .quote-attribution { margin-top:1.5rem; font-size:.9rem; color:var(--text-muted); font-style:normal; }
+    /* CTA */
+    .about-cta { background:var(--bg-secondary); padding:4rem 0; text-align:center; }
+    .about-cta h2 { font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:700; color:var(--text-primary); margin-bottom:.75rem; }
+    .about-cta p { color:var(--text-secondary); margin-bottom:2rem; }
+    .cta-btns { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; }
+    @media (max-width:900px) { .story-grid { grid-template-columns:1fr; } .values-grid { grid-template-columns:1fr 1fr; } .team-grid { grid-template-columns:1fr 1fr; } .numbers-grid { grid-template-columns:1fr 1fr; } }
+    @media (max-width:600px) { .values-grid { grid-template-columns:1fr; } .team-grid { grid-template-columns:1fr; } .numbers-grid { grid-template-columns:1fr 1fr; } }
+  </style>
+</head>
+<body>
+  <div id="site-header"></div>
+
+  <!-- Hero -->
+  <section class="about-hero">
+    <div class="container">
+      <h1>Curated Stories, Timeless Literature</h1>
+      <p>We are passionate readers on a mission to connect great books with curious minds. Every book in our collection is chosen with care.</p>
+    </div>
+  </section>
+
+  <!-- Our Story -->
+  <section class="story-section">
+    <div class="container">
+      <div class="story-grid">
+        <div class="story-text">
+          <div class="founding-badge">📅 Founded 2021 &bull; Independent &amp; Proud</div>
+          <h2>Our Story</h2>
+          <p>BookNest was born from a simple belief: that reading is one of the most transformative things a person can do. In 2021, three friends who couldn't stop recommending books to each other decided to build the kind of bookstore they always wanted to visit — one that curates with intention, celebrates independent voices, and treats books as the cultural treasures they are.</p>
+          <p>What started as a small passion project quickly grew into a beloved corner of the internet for book lovers everywhere. We handpick every title in our catalog, working directly with publishers, indie presses, and authors to bring you books that matter — stories that linger, ideas that challenge, and adventures that transport.</p>
+          <p>Today, BookNest serves thousands of readers across the country. But we've stayed true to our roots: an independent bookstore with heart, built by readers, for readers.</p>
+        </div>
+        <div class="story-visual">
+          <div class="big-icon">📚</div>
+          <p>"We didn't just want to sell books. We wanted to create the experience of walking into your favourite independent bookshop — that magical feeling of discovering exactly the right book at exactly the right moment."</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Values -->
+  <section class="values-section">
+    <div class="container">
+      <h2>What We Stand For</h2>
+      <p class="values-subtitle">Four principles guide everything we do at BookNest</p>
+      <div class="values-grid">
+        <div class="value-card">
+          <div class="value-icon">🎯</div>
+          <h3>Curation</h3>
+          <p>We don't stock everything — we stock the right things. Every book earns its place on our shelves through careful consideration.</p>
+        </div>
+        <div class="value-card">
+          <div class="value-icon">🤝</div>
+          <h3>Community</h3>
+          <p>Books connect us. We build spaces — digital and physical — where readers can discover, discuss, and share their love of literature.</p>
+        </div>
+        <div class="value-card">
+          <div class="value-icon">🌱</div>
+          <h3>Sustainability</h3>
+          <p>We ship in recycled packaging, partner with carbon-neutral logistics providers, and support environmental causes through every sale.</p>
+        </div>
+        <div class="value-card">
+          <div class="value-icon">💡</div>
+          <h3>Accessibility</h3>
+          <p>Great books should be for everyone. We offer competitive prices, free shipping on orders over $50, and a wide range of budgets.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Team -->
+  <section class="team-section">
+    <div class="container">
+      <h2>The Team Behind BookNest</h2>
+      <p class="team-subtitle">Three readers who turned a shared obsession into a bookstore</p>
+      <div class="team-grid">
+        <div class="team-card">
+          <div class="team-avatar" style="background:linear-gradient(135deg,#B85D36,#E07B54);">SM</div>
+          <h3>Sara Mitchell</h3>
+          <p>Co-Founder &amp; Head Curator<br /><em style="font-size:.78rem;">Literary fiction, historical novels</em></p>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar" style="background:linear-gradient(135deg,#1A1A2E,#4A4A6E);">JO</div>
+          <h3>James Okafor</h3>
+          <p>Technology &amp; Operations<br /><em style="font-size:.78rem;">Science fiction, technology</em></p>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar" style="background:linear-gradient(135deg,#7C3AED,#A855F7);">PS</div>
+          <h3>Priya Sharma</h3>
+          <p>Community &amp; Editorial<br /><em style="font-size:.78rem;">Poetry, philosophy, world literature</em></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Numbers -->
+  <section class="numbers-section" id="locations">
+    <div class="container">
+      <h2>BookNest by the Numbers</h2>
+      <div class="numbers-grid">
+        <div class="number-card">
+          <div class="number-val">24+</div>
+          <div class="number-label">Curated Books</div>
+        </div>
+        <div class="number-card">
+          <div class="number-val">6</div>
+          <div class="number-label">Genres &amp; Categories</div>
+        </div>
+        <div class="number-card">
+          <div class="number-val">1,000+</div>
+          <div class="number-label">Happy Readers</div>
+        </div>
+        <div class="number-card">
+          <div class="number-val">100%</div>
+          <div class="number-label">Independent</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quote -->
+  <section class="quote-section">
+    <div class="container">
+      <blockquote>
+        Every book is a door to another world. We exist to make sure every reader finds their door.
+        <div class="quote-attribution">— Sara Mitchell, Co-Founder, BookNest</div>
+      </blockquote>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="about-cta">
+    <div class="container">
+      <h2>Start Your Reading Journey</h2>
+      <p>Discover our carefully curated collection of books across every genre and interest.</p>
+      <div class="cta-btns">
+        <a href="books.html" class="btn btn-primary">Explore Books</a>
+        <a href="contact.html" class="btn btn-outline">Contact Us</a>
+      </div>
+    </div>
+  </section>
+
+  <div id="site-footer"></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/wishlist.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

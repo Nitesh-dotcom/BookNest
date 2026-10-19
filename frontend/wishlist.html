@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Wishlist – BookNest</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .page-hero { background:linear-gradient(135deg,#1A1A2E,#2D2D4E); color:#fff; padding:2rem 0; }
+    .page-hero h1 { font-family:'Playfair Display',serif; font-size:2rem; font-weight:700; }
+    .wishlist-wrap { padding:2rem 0 4rem; }
+    .wishlist-toolbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem; }
+    .wishlist-count { font-size:.95rem; color:var(--text-secondary); }
+    .wishlist-count strong { color:var(--text-primary); }
+    /* Grid */
+    .wishlist-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:1.4rem; }
+    /* Wishlist card */
+    .wish-card { background:#fff; border:1px solid var(--border-color); border-radius:16px; overflow:hidden; transition:box-shadow .2s; position:relative; }
+    .wish-card:hover { box-shadow:0 6px 24px rgba(0,0,0,.09); }
+    .wish-card-img-wrap { position:relative; }
+    .wish-card-img { width:100%; aspect-ratio:2/3; object-fit:cover; display:block; }
+    .out-badge { position:absolute; top:8px; left:8px; background:rgba(0,0,0,.65); color:#fff; border-radius:6px; padding:.2rem .55rem; font-size:.72rem; font-weight:700; }
+    .wish-card-body { padding:1rem; }
+    .wish-card-title { font-weight:700; font-size:.9rem; color:var(--text-primary); text-decoration:none; display:block; margin-bottom:.25rem; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .wish-card-title:hover { color:var(--accent-primary); }
+    .wish-card-author { font-size:.8rem; color:var(--text-muted); margin-bottom:.6rem; }
+    .wish-card-price { display:flex; align-items:baseline; gap:.5rem; margin-bottom:.75rem; }
+    .wish-price { font-weight:700; color:var(--text-primary); font-size:.95rem; }
+    .wish-orig { font-size:.82rem; color:var(--text-muted); text-decoration:line-through; }
+    .wish-disc { font-size:.78rem; font-weight:700; color:#16A34A; background:#D1FAE5; border-radius:4px; padding:.1rem .4rem; }
+    .wish-card-actions { display:flex; gap:.5rem; }
+    .btn-move-to-cart { flex:1; padding:.55rem .5rem; border:none; border-radius:8px; background:var(--accent-primary); color:#fff; font-weight:700; font-size:.8rem; font-family:inherit; cursor:pointer; transition:background .15s; display:flex; align-items:center; justify-content:center; gap:.3rem; }
+    .btn-move-to-cart:hover:not(:disabled) { background:var(--accent-dark); }
+    .btn-move-to-cart:disabled { opacity:.5; cursor:not-allowed; }
+    .btn-remove-wish { padding:.55rem .6rem; border:1.5px solid var(--border-color); border-radius:8px; background:#fff; color:var(--text-muted); cursor:pointer; transition:all .15s; display:flex; align-items:center; }
+    .btn-remove-wish:hover { border-color:#DC2626; color:#DC2626; background:#FEF2F2; }
+    /* Empty state */
+    .empty-wish { text-align:center; padding:5rem 2rem; }
+    .empty-wish .empty-icon { font-size:5rem; margin-bottom:1rem; }
+    .empty-wish h2 { font-family:'Playfair Display',serif; font-size:1.4rem; margin-bottom:.5rem; color:var(--text-primary); }
+    .empty-wish p { color:var(--text-secondary); margin-bottom:1.5rem; }
+    /* Skeleton */
+    .skel { background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; border-radius:6px; }
+    @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    @media (max-width:600px) { .wishlist-grid { grid-template-columns:repeat(2,1fr); } }
+  </style>
+</head>
+<body>
+  <div id="site-header"></div>
+  <section class="page-hero"><div class="container"><h1>My Wishlist</h1></div></section>
+  <main>
+    <div class="container">
+      <div class="wishlist-wrap">
+        <div id="wishlist-content"></div>
+      </div>
+    </div>
+  </main>
+  <div id="site-footer"></div>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/wishlist.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (window.auth) window.auth.requireAuth();
+      await loadWishlist();
+    });
+
+    async function loadWishlist() {
+      document.getElementById('wishlist-content').innerHTML = `
+        <div class="wishlist-toolbar"><div class="wishlist-count">Loading…</div></div>
+        <div class="wishlist-grid">
+          ${Array(6).fill(0).map(() => `
+            <div class="wish-card">
+              <div class="skel" style="width:100%;aspect-ratio:2/3;"></div>
+              <div style="padding:1rem;">
+                <div class="skel" style="height:14px;margin-bottom:.5rem;"></div>
+                <div class="skel" style="height:12px;width:60%;margin-bottom:.5rem;"></div>
+                <div class="skel" style="height:34px;margin-top:.75rem;border-radius:8px;"></div>
+              </div>
+            </div>`).join('')}
+        </div>`;
+
+      try {
+        const res = await api.get('/wishlist');
+        const data = (res && res.data !== undefined) ? res.data : res;
+        const items = data.items || [];
+        renderWishlist(items);
+      } catch (e) {
+        document.getElementById('wishlist-content').innerHTML = `<p style="text-align:center;color:#DC2626;padding:2rem;">${e.message || 'Could not load wishlist.'}</p>`;
+      }
+    }
+
+    function renderWishlist(items) {
+      if (!items.length) {
+        document.getElementById('wishlist-content').innerHTML = `
+          <div class="empty-wish">
+            <div class="empty-icon">💝</div>
+            <h2>Your wishlist is empty</h2>
+            <p>Save books you love and come back to them anytime.</p>
+            <a href="books.html" class="btn btn-primary">Discover Books</a>
+          </div>`;
+        return;
+      }
+
+      document.getElementById('wishlist-content').innerHTML = `
+        <div class="wishlist-toolbar">
+          <div class="wishlist-count"><strong>${items.length}</strong> book${items.length !== 1 ? 's' : ''} in your wishlist</div>
+        </div>
+        <div class="wishlist-grid" id="wish-grid">
+          ${items.map(item => renderWishCard(item)).join('')}
+        </div>`;
+    }
+
+    function renderWishCard(item) {
+      const b = item.book || item;
+      const title = b.title || item.title || 'Book';
+      const author = b.author || item.author || '';
+      const bookId = b.id || item.bookId;
+      const hasDiscount = b.originalPrice && parseFloat(b.originalPrice) > parseFloat(b.price);
+      const displayPrice = b.price;
+      const discPct = hasDiscount ? Math.round((1 - parseFloat(b.price) / parseFloat(b.originalPrice)) * 100) : 0;
+      const outOfStock = !b.active || !b.stockQuantity || b.stockQuantity <= 0;
+      const img = b.coverImageUrl || b.imageUrl || item.imageUrl || 'assets/placeholder.svg';
+      const bJson = JSON.stringify(b).replace(/"/g, '&quot;');
+
+      return `
+        <div class="wish-card" id="wish-card-${bookId}">
+          <div class="wish-card-img-wrap">
+            <a href="book-details.html?id=${bookId}">
+              <img class="wish-card-img" src="${img}" alt="${title}" onerror="handleImageError(this)" loading="lazy" />
+            </a>
+            ${outOfStock ? '<span class="out-badge">Out of Stock</span>' : ''}
+          </div>
+          <div class="wish-card-body">
+            <a href="book-details.html?id=${bookId}" class="wish-card-title">${title}</a>
+            <div class="wish-card-author">by ${author}</div>
+            <div class="wish-card-price">
+              <span class="wish-price">${formatPrice(displayPrice)}</span>
+              ${hasDiscount ? `<span class="wish-orig">${formatPrice(b.originalPrice)}</span><span class="wish-disc">-${discPct}%</span>` : ''}
+            </div>
+            <div class="wish-card-actions">
+              <button class="btn-move-to-cart" id="move-btn-${bookId}" onclick="moveToCart(${bJson}, this)" ${outOfStock ? 'disabled' : ''}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                ${outOfStock ? 'Sold Out' : 'Move to Cart'}
+              </button>
+              <button class="btn-remove-wish" onclick="removeFromWishlist(${bookId})" title="Remove from wishlist">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4h6v2"></path></svg>
+              </button>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    async function moveToCart(book, btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span style="font-size:.75rem;">Adding…</span>';
+      try {
+        await window.cart.addItem(book, 1);
+        await removeFromWishlist(book.id, true);
+        showToast('Moved to cart!', 'success');
+      } catch (e) {
+        showToast(e.message || 'Could not add to cart.', 'error');
+        btn.disabled = false;
+        btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg> Move to Cart`;
+      }
+    }
+
+    async function removeFromWishlist(bookId, silent = false) {
+      try {
+        await window.wishlist.toggle(bookId);
+        const card = document.getElementById('wish-card-' + bookId);
+        if (card) {
+          card.style.transition = 'opacity .3s, transform .3s';
+          card.style.opacity = '0';
+          card.style.transform = 'scale(0.9)';
+          setTimeout(() => card.remove(), 300);
+        }
+        if (!silent) showToast('Removed from wishlist.', 'success');
+      } catch (e) {
+        if (!silent) showToast(e.message || 'Could not remove.', 'error');
+      }
+    }
+  </script>
+</body>
+</html>
